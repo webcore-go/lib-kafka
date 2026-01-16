@@ -1,8 +1,8 @@
 package kafka
 
 import (
-	"github.com/semanggilab/webcore-go/app/config"
-	"github.com/semanggilab/webcore-go/app/loader"
+	"github.com/webcore-go/webcore/app/config"
+	"github.com/webcore-go/webcore/app/loader"
 )
 
 type KafkaConsumerLoader struct {

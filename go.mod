@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/confluentinc/confluent-kafka-go/v2 v2.12.0
-	github.com/semanggilab/webcore-go v0.1.2
+	github.com/webcore-go/webcore v0.0.1
 )
 
 require (
