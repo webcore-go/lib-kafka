@@ -21,12 +21,11 @@ type KafkaConsumer struct {
 	consumer *kafka.Consumer
 	config   *config.KafkaConfig
 	handler  KafkaReceiver
-	topic    string
 }
 
 // NewConsumer membuat dan mengembalikan instance kafka.Reader (consumer) baru.
 func NewKafkaConsumer(cfg *config.KafkaConfig, h KafkaReceiver) (*KafkaConsumer, error) {
-	if cfg == nil || len(cfg.Brokers) == 0 || cfg.Topic == "" || cfg.GroupID == "" {
+	if cfg == nil || len(cfg.Brokers) == 0 || len(cfg.Topics) == 0 || cfg.GroupID == "" {
 		return nil, fmt.Errorf("KAFKA_BROKERS, KAFKA_TOPIC, KAFKA_GROUP_ID, dan KAFKA_AUTO_OFFSET_RESET harus di-set")
 	}
 
@@ -69,7 +68,6 @@ func NewKafkaConsumer(cfg *config.KafkaConfig, h KafkaReceiver) (*KafkaConsumer,
 		consumer: c,
 		config:   cfg,
 		handler:  h,
-		topic:    cfg.Topic,
 	}, nil
 }
 
@@ -84,7 +82,7 @@ func (kc *KafkaConsumer) Run(ctx context.Context) {
 	var connectionErrorCount int
 
 	// Subscribe to multiple topics if comma-separated
-	topics := strings.Split(kc.topic, ",")
+	topics := kc.config.Topics
 	err := kc.consumer.SubscribeTopics(topics, nil)
 	if err != nil {
 		logger.Error("Gagal subscribe ke topic", "topic", topics, "error", err)
@@ -190,7 +188,7 @@ type KafkaProducer struct {
 
 // NewKafkaProducer membuat dan mengembalikan instance KafkaProducer baru
 func NewKafkaProducer(cfg *config.KafkaConfig) (*KafkaProducer, error) {
-	if cfg == nil || len(cfg.Brokers) == 0 || cfg.Topic == "" {
+	if cfg == nil || len(cfg.Brokers) == 0 || len(cfg.Topics) == 0 {
 		return nil, fmt.Errorf("KAFKA_BROKERS dan TOPIC harus di-set")
 	}
 
@@ -218,7 +216,7 @@ func NewKafkaProducer(cfg *config.KafkaConfig) (*KafkaProducer, error) {
 	}
 
 	// Log broker information for debugging
-	logger.Info("Kafka producer dibuat", "brokers", kafkaBrokers, "topic", cfg.Topic)
+	logger.Info("Kafka producer dibuat", "brokers", kafkaBrokers, "topic", cfg.Topics)
 
 	// Get and log broker metadata to show advertise listener addresses
 	metadata, err := p.GetMetadata(nil, true, 5000)
@@ -238,14 +236,14 @@ func NewKafkaProducer(cfg *config.KafkaConfig) (*KafkaProducer, error) {
 }
 
 // SendMessage mengirim pesan ke Kafka topic
-func (kp *KafkaProducer) SendMessage(ctx context.Context, key string, value []byte) error {
+func (kp *KafkaProducer) SendMessage(ctx context.Context, topic string, key string, value []byte) error {
 	if kp.producer == nil {
 		return fmt.Errorf("producer belum diinisialisasi")
 	}
 
 	// Create message
 	message := &kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &kp.config.Topic, Partition: kafka.PartitionAny},
+		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Key:            []byte(key),
 		Value:          value,
 		Headers:        []kafka.Header{}, // Optional headers
@@ -288,12 +286,12 @@ func (kp *KafkaProducer) SendMessage(ctx context.Context, key string, value []by
 }
 
 // SendJSONMessage mengirim pesan sebagai JSON ke Kafka topic
-func (kp *KafkaProducer) SendJSONMessage(ctx context.Context, key string, data interface{}) error {
+func (kp *KafkaProducer) SendJSONMessage(ctx context.Context, topic string, key string, data interface{}) error {
 	jsonData, err := helper.JSONMarshal(data)
 	if err != nil {
 		return fmt.Errorf("gagal marshal JSON: %v", err)
 	}
-	return kp.SendMessage(ctx, key, jsonData)
+	return kp.SendMessage(ctx, topic, key, jsonData)
 }
 
 // Close menutup koneksi Kafka producer
