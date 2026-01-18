@@ -1,8 +1,8 @@
 package kafka
 
 import (
-	"github.com/webcore-go/webcore/app/config"
-	"github.com/webcore-go/webcore/app/loader"
+	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/port"
 )
 
 type KafkaConsumerLoader struct {
@@ -17,7 +17,7 @@ func (a *KafkaConsumerLoader) Name() string {
 	return a.name
 }
 
-func (l *KafkaConsumerLoader) Init(args ...any) (loader.Library, error) {
+func (l *KafkaConsumerLoader) Init(args ...any) (port.Library, error) {
 	config := args[0].(config.KafkaConfig)
 	receiver := args[1].(KafkaReceiver)
 
@@ -47,7 +47,7 @@ func (a *KafkaProducerLoader) Name() string {
 	return a.name
 }
 
-func (l *KafkaProducerLoader) Init(args ...any) (loader.Library, error) {
+func (l *KafkaProducerLoader) Init(args ...any) (port.Library, error) {
 	config := args[0].(config.KafkaConfig)
 
 	kc, err := NewKafkaProducer(&config)

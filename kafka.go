@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/webcore-go/webcore/app/config"
 	"github.com/webcore-go/webcore/app/helper"
-	"github.com/webcore-go/webcore/app/logger"
+	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/infra/logger"
 )
 
 type KafkaReceiver interface {
